@@ -5,7 +5,7 @@ const mongoose = require('mongoose')
     @author McKilla Gorilla
 */
 mongoose
-    .connect('mongodb://127.0.0.1:27017/playlists', { useNewUrlParser: true })
+    .connect('mongodb://127.0.0.1:27017/playlists', { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: true })
     .catch(e => {
         console.error('Connection error', e.message)
     })

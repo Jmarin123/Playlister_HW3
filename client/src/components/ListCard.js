@@ -26,6 +26,12 @@ function ListCard(props) {
         }
     }
 
+    function handleDeleteList(event) {
+        event.stopPropagation();
+        let playlistValue = event.target.id.split('-')[2];
+        store.markListForDeletion(playlistValue);
+    }
+
     function handleToggleEdit(event) {
         event.stopPropagation();
         toggleEdit();
@@ -42,7 +48,9 @@ function ListCard(props) {
     function handleKeyPress(event) {
         if (event.code === "Enter") {
             let id = event.target.id.substring("list-".length);
-            store.changeListName(id, text);
+            if (text !== '') {
+                store.changeListName(id, text);
+            }
             toggleEdit();
         }
     }
@@ -76,6 +84,7 @@ function ListCard(props) {
                 id={"delete-list-" + idNamePair._id}
                 className="list-card-button"
                 value={"\u2715"}
+                onClick={handleDeleteList}
             />
             <input
                 disabled={cardStatus}
