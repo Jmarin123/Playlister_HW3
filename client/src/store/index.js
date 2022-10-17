@@ -17,7 +17,9 @@ export const GlobalStoreActionType = {
     CREATE_NEW_LIST: "CREATE_NEW_LIST",
     LOAD_ID_NAME_PAIRS: "LOAD_ID_NAME_PAIRS",
     SET_CURRENT_LIST: "SET_CURRENT_LIST",
-    SET_LIST_NAME_EDIT_ACTIVE: "SET_LIST_NAME_EDIT_ACTIVE"
+    SET_LIST_NAME_EDIT_ACTIVE: "SET_LIST_NAME_EDIT_ACTIVE",
+    MARK_LIST_FOR_DELETION: "MARK_LIST_FOR_DELETION",
+    MARK_SONG_FOR_DELETION: "MARK_SONG_FOR_DELETION"
 }
 
 // WE'LL NEED THIS TO PROCESS TRANSACTIONS
@@ -32,7 +34,8 @@ export const useGlobalStore = () => {
         currentList: null,
         newListCounter: 0,
         listNameActive: false,
-        markedListForDelete: null
+        markedListForDelete: null,
+        markedSongForDelete: null
     });
 
     // HERE'S THE DATA STORE'S REDUCER, IT MUST
@@ -47,7 +50,8 @@ export const useGlobalStore = () => {
                     currentList: payload.playlist,
                     newListCounter: store.newListCounter,
                     listNameActive: false,
-                    markedListForDelete: null
+                    markedListForDelete: null,
+                    markedSongForDelete: null
                 });
             }
             // STOP EDITING THE CURRENT LIST
@@ -57,7 +61,8 @@ export const useGlobalStore = () => {
                     currentList: null,
                     newListCounter: store.newListCounter,
                     listNameActive: false,
-                    markedListForDelete: null
+                    markedListForDelete: null,
+                    markedSongForDelete: null
                 })
             }
             // CREATE A NEW LIST
@@ -67,7 +72,8 @@ export const useGlobalStore = () => {
                     currentList: payload,
                     newListCounter: store.newListCounter + 1,
                     listNameActive: false,
-                    markedListForDelete: null
+                    markedListForDelete: null,
+                    markedSongForDelete: null
                 })
             }
             // GET ALL THE LISTS SO WE CAN PRESENT THEM
@@ -77,7 +83,8 @@ export const useGlobalStore = () => {
                     currentList: null,
                     newListCounter: store.newListCounter,
                     listNameActive: false,
-                    markedListForDelete: null
+                    markedListForDelete: null,
+                    markedSongForDelete: null
                 });
             }
             // PREPARE TO DELETE A LIST
@@ -87,7 +94,8 @@ export const useGlobalStore = () => {
                     currentList: null,
                     newListCounter: store.newListCounter,
                     listNameActive: false,
-                    markedListForDelete: payload
+                    markedListForDelete: payload,
+                    markedSongForDelete: null
                 });
             }
             // UPDATE A LIST
@@ -97,7 +105,8 @@ export const useGlobalStore = () => {
                     currentList: payload,
                     newListCounter: store.newListCounter,
                     listNameActive: false,
-                    markedListForDelete: null
+                    markedListForDelete: null,
+                    markedSongForDelete: null
                 });
             }
             // START EDITING A LIST NAME
@@ -107,8 +116,20 @@ export const useGlobalStore = () => {
                     currentList: payload,
                     newListCounter: store.newListCounter,
                     listNameActive: true,
-                    markedListForDelete: null
+                    markedListForDelete: null,
+                    markedSongForDelete: null
                 });
+            }
+
+            case GlobalStoreActionType.MARK_SONG_FOR_DELETION: {
+                return setStore({
+                    idNamePairs: store.idNamePairs,
+                    currentList: store.currentList,
+                    newListCounter: store.newListCounter,
+                    listNameActive: false,
+                    markedListForDelete: null,
+                    markedSongForDelete: payload
+                })
             }
             default:
                 return store;
@@ -150,6 +171,11 @@ export const useGlobalStore = () => {
         }
         asyncChangeListName(id);
     }
+
+
+    /** 
+    * * This deals with the LIST delete modal 
+    */
     store.showDeleteListModal = () => {
         let modal = document.getElementById('delete-list-modal');
         modal.classList.add('is-visible');
@@ -159,6 +185,23 @@ export const useGlobalStore = () => {
         modal.classList.remove('is-visible');
     }
 
+    /** 
+    * * This deals with the song delete modal 
+    */
+
+    store.showDeleteSongModal = () => {
+        let modal = document.getElementById('delete-song-modal');
+        modal.classList.add('is-visible');
+    }
+    store.hideDeleteSongModal = () => {
+        let modal = document.getElementById('delete-song-modal');
+        modal.classList.remove('is-visible');
+    }
+
+    /**
+     * 
+     * * Dealing with marking and deleting lists
+     */
     store.markListForDeletion = async (playlistID) => {
         const givenPlaylist = await api.getPlaylistById(playlistID);
         if (givenPlaylist.data.success) {
@@ -175,6 +218,36 @@ export const useGlobalStore = () => {
         store.loadIdNamePairs();
         store.hideDeleteListModal();
     }
+
+    /**
+     * 
+     * * Dealing with marking and deleting SONGS
+     */
+    store.markSongForDeletion = async (song) => {
+        storeReducer({
+            type: GlobalStoreActionType.MARK_SONG_FOR_DELETION,
+            payload: store.currentList.songs[song]
+        });
+        store.showDeleteSongModal();
+    }
+
+    store.deleteMarkedSong = async () => {
+        let currentList = store.currentList;
+        let newList = currentList.songs.filter(function (song) {
+            return song !== store.markedSongForDelete;
+        })
+        currentList.songs = newList;
+        let updateCurrentList = await api.updatePlaylistById(store.currentList._id, currentList);
+        if (updateCurrentList.data.success) {
+            storeReducer({
+                type: GlobalStoreActionType.SET_CURRENT_LIST,
+                payload: currentList
+            });
+        }
+        store.hideDeleteSongModal();
+    }
+
+
     // THIS FUNCTION PROCESSES CLOSING THE CURRENTLY LOADED LIST
     store.closeCurrentList = function () {
         storeReducer({
