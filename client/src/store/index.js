@@ -17,7 +17,7 @@ export const GlobalStoreActionType = {
     CREATE_NEW_LIST: "CREATE_NEW_LIST",
     LOAD_ID_NAME_PAIRS: "LOAD_ID_NAME_PAIRS",
     SET_CURRENT_LIST: "SET_CURRENT_LIST",
-    SET_LIST_NAME_EDIT_ACTIVE: "SET_LIST_NAME_EDIT_ACTIVE",
+    SET_LIST_NAME_EDIT_ACTIVE: "SET_LIST_NAME_EDIT_ACTIVE"
 }
 
 // WE'LL NEED THIS TO PROCESS TRANSACTIONS
@@ -158,11 +158,7 @@ export const useGlobalStore = () => {
         let modal = document.getElementById('delete-list-modal');
         modal.classList.remove('is-visible');
     }
-    store.deleteMarkedList = async () => {
-        let deletedList = await api.deletePlaylistById(store.markedListForDelete._id);
-        store.loadIdNamePairs();
-        store.hideDeleteListModal();
-    }
+
     store.markListForDeletion = async (playlistID) => {
         const givenPlaylist = await api.getPlaylistById(playlistID);
         if (givenPlaylist.data.success) {
@@ -174,13 +170,38 @@ export const useGlobalStore = () => {
             store.showDeleteListModal();
         }
     }
-
+    store.deleteMarkedList = async () => {
+        let deletedList = await api.deletePlaylistById(store.markedListForDelete._id);
+        store.loadIdNamePairs();
+        store.hideDeleteListModal();
+    }
     // THIS FUNCTION PROCESSES CLOSING THE CURRENTLY LOADED LIST
     store.closeCurrentList = function () {
         storeReducer({
             type: GlobalStoreActionType.CLOSE_CURRENT_LIST,
             payload: {}
         });
+    }
+
+    store.addSong = async function () {
+        let getCurrentList = await api.getPlaylistById(store.currentList._id);
+        if (getCurrentList.data.success) {
+            getCurrentList = getCurrentList.data.playlist
+            let newSongObj = {
+                title: "Untitled",
+                artist: "Unknown",
+                youTubeId: "dQw4w9WgXcQ"
+            }
+            getCurrentList.songs.push(newSongObj);
+            let response = await api.updatePlaylistById(store.currentList._id, getCurrentList);
+            if (response.data.success) {
+                storeReducer({
+                    type: GlobalStoreActionType.SET_CURRENT_LIST,
+                    payload: getCurrentList
+                });
+            }
+        }
+
     }
 
     // THIS FUNCTION LOADS ALL THE ID, NAME PAIRS SO WE CAN LIST ALL THE LISTS

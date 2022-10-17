@@ -82,7 +82,9 @@ body {
 }
 
 #playlist-cards {
+  height: 70vh;
   display: list-item;
+  overflow: scroll;
 }
 
 .playlister-button,
