@@ -402,6 +402,20 @@ export const useGlobalStore = () => {
         }
         asyncSetCurrentList(id);
     }
+
+    store.switchSongs = async (src, target) => {
+        let currentList = store.currentList;
+        let temp = currentList.songs[target];
+        currentList.songs[target] = currentList.songs[src];
+        currentList.songs[src] = temp;
+        let updateCurrentList = await api.updatePlaylistById(store.currentList._id, currentList);
+        if (updateCurrentList.data.success) {
+            storeReducer({
+                type: GlobalStoreActionType.SET_CURRENT_LIST,
+                payload: currentList
+            });
+        }
+    }
     store.getPlaylistSize = function () {
         return store.currentList.songs.length;
     }

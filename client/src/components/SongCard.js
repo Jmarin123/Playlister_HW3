@@ -7,8 +7,11 @@ function SongCard(props) {
     const [title, setTitle] = useState("");
     const [artist, setArtist] = useState("");
     const [youTubeId, setYouTubeId] = useState("");
+    const [draggingTo, setDraggingTo] = useState(false);
+
     const { song, index } = props;
     let cardClass = "list-card unselected-list-card";
+
     const handleDeleteSong = (event) => {
         event.stopPropagation();
         let value = event.target.id.split('-')[2];
@@ -17,6 +20,14 @@ function SongCard(props) {
     const handleDoubleClick = (event) => {
         event.stopPropagation();
         toggleEdit();
+    }
+    const handleDragEnter = (event) => {
+        event.preventDefault();
+        setDraggingTo(true);
+    }
+    const handleDragLeave = (event) => {
+        event.preventDefault();
+        setDraggingTo(false);
     }
     const toggleEdit = () => {
         let newEdit = !editActive;
@@ -39,7 +50,17 @@ function SongCard(props) {
     const handleYoutubeChange = (event) => {
         setYouTubeId(event.target.value);
     }
-
+    const handleDragStart = (event) => {
+        let songId = event.target.id.split('-')[1];
+        event.dataTransfer.setData("song", songId);
+    }
+    const handleDragDrop = (event) => {
+        event.preventDefault();
+        let songTarget = event.target.id.split('-')[1];
+        let songDragged = event.dataTransfer.getData("song");
+        store.switchSongs(songDragged, songTarget);
+        setDraggingTo(false);
+    }
     function handleKeyPress(event) {
         if (event.code === "Enter") {
             // let id = event.target.id.substring("list-".length);
@@ -73,11 +94,20 @@ function SongCard(props) {
     if (store.markedSongForDelete || store.currentlyEditingSong) {
         checkDisable = true;
     }
+    if (draggingTo) {
+        cardClass = "list-card selected-list-card";
+    }
     let songElement = <div
         key={index}
         id={'song-' + index + '-card'}
         className={cardClass}
         onDoubleClick={handleDoubleClick}
+        onDragStart={handleDragStart}
+        onDragOver={(event) => event.preventDefault()}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDragDrop}
+        draggable="true"
     >
         {index + 1}.
         <a
