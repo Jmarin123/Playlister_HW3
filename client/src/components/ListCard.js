@@ -41,6 +41,8 @@ function ListCard(props) {
         let newActive = !editActive;
         if (newActive) {
             store.setlistNameActive();
+        } else {
+            store.setlistNameDisable();
         }
         setEditActive(newActive);
     }
@@ -63,7 +65,7 @@ function ListCard(props) {
         selectClass = "selected-list-card";
     }
     let cardStatus = false;
-    if (store.isListNameEditActive) {
+    if (store.listNameActive || store.markedListForDelete) {
         cardStatus = true;
     }
     let cardElement =

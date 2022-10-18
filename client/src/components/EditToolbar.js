@@ -27,7 +27,7 @@ function EditToolbar() {
         store.addSong();
     }
     let editStatus = false;
-    if (store.isListNameEditActive || !store.currentList) {
+    if (store.listNameActive || !store.currentList || store.markedSongForDelete || store.currentlyEditingSong) {
         editStatus = true;
     }
     return (
