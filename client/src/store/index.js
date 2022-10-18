@@ -1,6 +1,10 @@
 import { createContext, useState } from 'react'
 import jsTPS from '../common/jsTPS'
 import api from '../api'
+import AddSongTransaction from '../transactions/AddSongTransaction';
+import MoveSongTransaction from '../transactions/MoveSongTransaction';
+import EditSongTransaction from '../transactions/EditSongTransaction';
+import DeleteSongTransaction from '../transactions/DeleteSongTransaction';
 export const GlobalStoreContext = createContext({});
 /*
     This is our global data store. Note that it uses the Flux design pattern,
@@ -299,6 +303,8 @@ export const useGlobalStore = () => {
         store.hideDeleteListModal();
     }
 
+
+
     /**
      * 
      * * Dealing with marking and deleting SONGS
@@ -313,10 +319,15 @@ export const useGlobalStore = () => {
 
     store.deleteMarkedSong = async () => {
         let currentList = store.currentList;
-        let newList = currentList.songs.filter(function (song) {
-            return song !== store.markedSongForDelete;
-        })
-        currentList.songs = newList;
+        let getIndex = currentList.songs.indexOf(store.markedSongForDelete);
+        let transaction = new DeleteSongTransaction(store, store.markedSongForDelete.title, store.markedSongForDelete.artist, store.markedSongForDelete.youTubeId, getIndex);
+        tps.addTransaction(transaction);
+        store.hideDeleteSongModal();
+    }
+
+    store.deleteSong = async (setIndex) => {
+        let currentList = store.currentList;
+        currentList.songs = currentList.songs.filter((getSong, index) => index !== setIndex)
         let updateCurrentList = await api.updatePlaylistById(store.currentList._id, currentList);
         if (updateCurrentList.data.success) {
             storeReducer({
@@ -324,7 +335,6 @@ export const useGlobalStore = () => {
                 payload: currentList
             });
         }
-        store.hideDeleteSongModal();
     }
 
     store.editSong = async (songId, newInfo) => {
@@ -338,8 +348,26 @@ export const useGlobalStore = () => {
             });
         }
     }
+
+    store.moveEdit = async (oldInfo, index) => {
+        let currentList = store.currentList;
+        currentList.songs.splice(index, 0, oldInfo);
+        let updateCurrentList = await api.updatePlaylistById(store.currentList._id, currentList);
+        if (updateCurrentList.data.success) {
+            storeReducer({
+                type: GlobalStoreActionType.SET_CURRENT_LIST,
+                payload: currentList
+            });
+        }
+    }
+
+    store.editSongTransaction = (songId, oldInfo, newInfo) => {
+        let transaction = new EditSongTransaction(store, oldInfo.title, oldInfo.artist, oldInfo.youTubeId, newInfo.title, newInfo.artist, newInfo.youTubeId, songId);
+        tps.addTransaction(transaction);
+    }
     // THIS FUNCTION PROCESSES CLOSING THE CURRENTLY LOADED LIST
     store.closeCurrentList = function () {
+        tps.clearAllTransactions();
         storeReducer({
             type: GlobalStoreActionType.CLOSE_CURRENT_LIST,
             payload: {}
@@ -365,6 +393,10 @@ export const useGlobalStore = () => {
             }
         }
 
+    }
+    store.addSongTransaction = () => {
+        let transaction = new AddSongTransaction(store);
+        tps.addTransaction(transaction);
     }
 
     // THIS FUNCTION LOADS ALL THE ID, NAME PAIRS SO WE CAN LIST ALL THE LISTS
@@ -416,6 +448,12 @@ export const useGlobalStore = () => {
             });
         }
     }
+
+    store.switchSongsTransaction = (src, target) => {
+        let transaction = new MoveSongTransaction(store, src, target);
+        tps.addTransaction(transaction);
+    }
+
     store.getPlaylistSize = function () {
         return store.currentList.songs.length;
     }
@@ -424,6 +462,13 @@ export const useGlobalStore = () => {
     }
     store.redo = function () {
         tps.doTransaction();
+    }
+
+    store.checkHasTransactionToUndo = () => {
+        return tps.hasTransactionToUndo();
+    }
+    store.checkHasTransactionToRedo = () => {
+        return tps.hasTransactionToRedo();
     }
 
     // THIS FUNCTION ENABLES THE PROCESS OF EDITING A LIST NAME

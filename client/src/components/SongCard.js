@@ -42,6 +42,9 @@ function SongCard(props) {
     const handleTitleChange = (event) => {
         setTitle(event.target.value);
     }
+    const handleDragOver = (event) => {
+        event.preventDefault();
+    }
 
     const handleArtistChange = (event) => {
         setArtist(event.target.value);
@@ -58,7 +61,7 @@ function SongCard(props) {
         event.preventDefault();
         let songTarget = event.target.id.split('-')[1];
         let songDragged = event.dataTransfer.getData("song");
-        store.switchSongs(songDragged, songTarget);
+        store.switchSongsTransaction(songDragged, songTarget);
         setDraggingTo(false);
     }
     function handleKeyPress(event) {
@@ -85,7 +88,7 @@ function SongCard(props) {
                     artist: artistValue,
                     youTubeId: youtubeValue
                 }
-                store.editSong(index, newInfo);
+                store.editSongTransaction(index, song, newInfo);
             }
             toggleEdit();
         }
@@ -103,7 +106,7 @@ function SongCard(props) {
         className={cardClass}
         onDoubleClick={handleDoubleClick}
         onDragStart={handleDragStart}
-        onDragOver={(event) => event.preventDefault()}
+        onDragOver={handleDragOver}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDrop={handleDragDrop}
