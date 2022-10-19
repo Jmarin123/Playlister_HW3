@@ -1,4 +1,6 @@
 import EditToolbar from "./EditToolbar";
+import { useContext } from 'react'
+import { GlobalStoreContext } from '../store'
 /*
     Our Application's Banner, note we are using function-style
     React. Our banner just has a left-aligned heading and a
@@ -7,8 +9,12 @@ import EditToolbar from "./EditToolbar";
     @author McKilla Gorilla
 */
 function Banner(props) {
-    return (        
-        <div id="playlister-banner">
+    const { store } = useContext(GlobalStoreContext);
+    const handleKeyPress = (event) => {
+        store.handleKeyPress(event);
+    }
+    return (
+        <div id="playlister-banner" onKeyDown={handleKeyPress} tabIndex="0">
             Playlister
             <EditToolbar />
         </div>

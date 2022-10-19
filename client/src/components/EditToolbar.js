@@ -40,6 +40,9 @@ function EditToolbar() {
     if (!store.checkHasTransactionToRedo()) {
         redoDisable = true;
     }
+    // const handleKeyPress = (event) => {
+    //     store.handleKeyPress(event);
+    // }
     return (
         <span id="edit-toolbar">
             <input

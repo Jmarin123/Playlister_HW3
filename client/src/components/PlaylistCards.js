@@ -16,8 +16,13 @@ function PlaylistCards() {
         store.history.push('/');
         return null;
     }
+    const handleKeyPress = (event) => {
+        store.handleKeyPress(event);
+    }
     return (
-        <div id="playlist-cards">
+        <div id="playlist-cards"
+            onKeyDown={handleKeyPress} tabIndex="0"
+        >
             {
                 store.currentList.songs.map((song, index) => (
                     <SongCard

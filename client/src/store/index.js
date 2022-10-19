@@ -348,7 +348,16 @@ export const useGlobalStore = () => {
             });
         }
     }
-
+    store.handleKeyPress = (event) => {
+        if (!store.listNameActive && store.currentList && !store.markedSongForDelete && !store.currentlyEditingSong) {
+            if (event.ctrlKey && event.code === 'KeyZ' && tps.hasTransactionToUndo()) {
+                //This will deal with undo!
+                store.undo();
+            } else if (event.ctrlKey && event.code === 'KeyY' && tps.hasTransactionToRedo()) {
+                store.redo();
+            }
+        }
+    }
     store.moveEdit = async (oldInfo, index) => {
         let currentList = store.currentList;
         currentList.songs.splice(index, 0, oldInfo);
